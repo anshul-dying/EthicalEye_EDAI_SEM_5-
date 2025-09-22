@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ethical Eye — Sample Test Page</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background: #fafafa;
+            color: #222;
+        }
+
+        header {
+            background: #1f2937;
+            color: #fff;
+            padding: 16px 20px;
+        }
+
+        main {
+            padding: 24px 20px 48px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        h1,
+        h2,
+        h3 {
+            margin: 0 0 12px;
+        }
+
+        section {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .card {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 14px;
+            background: #fff;
+        }
+
+        .muted {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: #2563eb;
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 6px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .btn.secondary {
+            background: #374151;
+        }
+
+        .price {
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            color: #6b7280;
+            padding: 18px;
+        }
+    </style>
+    <script>
+        // Optional helpers to simulate UI interactions that may generate text
+        function addHiddenFee() {
+            const fees = document.getElementById('fees');
+            const fee = document.createElement('div');
+            fee.textContent = 'Processing fee: ₹149 will be added at checkout.'; // Hidden Costs / Sneaking
+            fees.appendChild(fee);
+        }
+    </script>
+    <!-- Tip: In Chrome, enable "Allow access to file URLs" for this extension if opening via file:// -->
+    <!-- Then open this file in the browser and click the extension’s ANALYZE SITE button. -->
+    <!-- The content below intentionally contains a mix of dark-pattern-style texts for testing. -->
+    <!-- Categories targeted: Urgency, Scarcity, Social Proof, Misdirection, Forced Action, Obstruction, Hidden Costs, Not Dark Pattern. -->
+</head>
+
+<body>
+    <header>
+        <h1>Ethical Eye — Sample Test Page</h1>
+        <p class="muted">Use the extension popup to analyze detected dark patterns. Hover highlights for explanations.
+        </p>
+    </header>
+
+    <main>
+        <section>
+            <h2>Common UI Copy (Not Dark Pattern)</h2>
+            <p>Welcome to our demo shop. Browse products, compare options, and purchase at your convenience.</p>
+            <p>We value transparency and user choice. You can opt out of any promotional emails at any time.</p>
+        </section>
+
+        <section>
+            <h2>Urgency & Scarcity</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>Flash Sale</h3>
+                    <p><span class="price">₹1,999</span> — Hurry! Offer ends in 10 minutes!</p> <!-- Urgency -->
+                    <a class="btn" href="#">Buy Now</a>
+                </div>
+                <div class="card">
+                    <h3>Popular Headphones</h3>
+                    <p>Only 2 left in stock! Order soon to avoid missing out.</p> <!-- Scarcity -->
+                    <a class="btn" href="#">Add to Cart</a>
+                </div>
+                <div class="card">
+                    <h3>Limited Time Bundle</h3>
+                    <p>Save 40% today only. Prices go up at midnight!</p> <!-- Urgency framing -->
+                    <a class="btn" href="#">Grab Deal</a>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Social Proof</h2>
+            <div class="grid">
+                <div class="card">
+                    <p>2,143 people bought this in the last 24 hours.</p> <!-- Social Proof -->
+                </div>
+                <div class="card">
+                    <p>Trending now — 31 users are viewing this item.</p> <!-- Social Proof -->
+                </div>
+                <div class="card">
+                    <p>Top-rated by customers like you.</p> <!-- Social Proof (soft) -->
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Misdirection</h2>
+            <div class="grid">
+                <div class="card">
+                    <p>Click “Accept” to continue (recommended). The small “Decline” link is below.</p>
+                    <!-- Misdirection -->
+                    <div>
+                        <a class="btn" href="#">Accept</a>
+                        <a class="btn secondary" href="#" style="margin-left:8px; opacity:0.65">Decline</a>
+                    </div>
+                </div>
+                <div class="card">
+                    <p>Enable Smart Protection to proceed (you can skip later in settings).</p>
+                    <!-- Misdirection/Forced Action flavor -->
+                    <a class="btn" href="#">Enable</a>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Forced Action</h2>
+            <div class="grid">
+                <div class="card">
+                    <p>To download your invoice, create an account first.</p> <!-- Forced Action -->
+                    <a class="btn" href="#">Create Account</a>
+                </div>
+                <div class="card">
+                    <p>Continue only after enabling notifications.</p> <!-- Forced Action -->
+                    <a class="btn" href="#">Enable Notifications</a>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Obstruction</h2>
+            <div class="grid">
+                <div class="card">
+                    <p>Cancel subscription: Step 1 of 5 — Are you sure you want to continue?</p> <!-- Obstruction -->
+                    <a class="btn" href="#">Next</a>
+                </div>
+                <div class="card">
+                    <p>To unsubscribe, please call our helpline between 2–3 AM IST.</p> <!-- Obstruction extreme -->
+                    <a class="btn" href="#">View Number</a>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Hidden Costs (Sneaking)</h2>
+            <div id="fees" class="card">
+                <p>Subtotal: ₹1,999</p>
+                <p class="muted">Taxes and fees calculated at checkout.</p> <!-- Hidden Costs hint -->
+            </div>
+            <div style="margin-top:10px;">
+                <button class="btn" onclick="addHiddenFee()">Simulate Added Fee</button>
+            </div>
+        </section>
+
+        <section>
+            <h2>Neutral Content (Not Dark Pattern)</h2>
+            <p>Our privacy policy outlines how we collect and use your data.</p>
+            <p>Compare features and select the plan that suits your needs.</p>
+            <p>Contact support for any assistance with your order.</p>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2025 Ethical Eye — Test Page</p>
+    </footer>
+</body>
+
+</html>
