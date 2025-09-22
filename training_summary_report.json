@@ -1,0 +1,23 @@
+{
+  "training_completed": "2025-09-22T09:41:22.765499",
+  "project": "Ethical Eye Extension",
+  "description": "Explainable AI for Dark Pattern Detection",
+  "components": {
+    "model_training": "DistilBERT fine-tuned for dark pattern classification",
+    "shap_explanations": "SHAP-based explanations for transparency",
+    "research_plots": "Comprehensive visualizations for research paper",
+    "api": "Flask API with real-time analysis capabilities"
+  },
+  "outputs": {
+    "model": "models/ethical_eye/final_model/",
+    "plots": "plots/research/",
+    "results": "results/",
+    "logs": "logs/training/"
+  },
+  "next_steps": [
+    "Load the trained model in the Chrome extension",
+    "Update the extension to use the new API",
+    "Conduct user study with 5-10 participants",
+    "Write research paper for conference submission"
+  ]
+}
