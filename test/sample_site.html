@@ -91,6 +91,32 @@
             fee.textContent = 'Processing fee: ₹149 will be added at checkout.'; // Hidden Costs / Sneaking
             fees.appendChild(fee);
         }
+
+        // Demo countdown timer (mm:ss) to trigger Countdown detection
+        function startDemoCountdown(durationSeconds) {
+            const el = document.getElementById('demo-countdown');
+            if (!el) return;
+            let remaining = durationSeconds;
+            function pad(n) { return n < 10 ? '0' + n : '' + n; }
+            function render() {
+                const minutes = Math.floor(remaining / 60);
+                const seconds = remaining % 60;
+                el.textContent = pad(minutes) + ':' + pad(seconds);
+            }
+            render();
+            const interval = setInterval(() => {
+                remaining = Math.max(remaining - 1, 0);
+                render();
+                if (remaining === 0) {
+                    clearInterval(interval);
+                }
+            }, 1000);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Start a 2-minute demo countdown
+            startDemoCountdown(120);
+        });
     </script>
     <!-- Tip: In Chrome, enable "Allow access to file URLs" for this extension if opening via file:// -->
     <!-- Then open this file in the browser and click the extension’s ANALYZE SITE button. -->
@@ -129,6 +155,16 @@
                     <h3>Limited Time Bundle</h3>
                     <p>Save 40% today only. Prices go up at midnight!</p> <!-- Urgency framing -->
                     <a class="btn" href="#">Grab Deal</a>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Countdown (Urgency Timer)</h2>
+            <div class="grid">
+                <div class="card">
+                    <p>Deal ends in <strong id="demo-countdown">02:00</strong></p>
+                    <p class="muted">This live timer should be detected as a Countdown pattern.</p>
                 </div>
             </div>
         </section>

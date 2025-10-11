@@ -8,7 +8,8 @@ const descriptions = {
     "Obstruction": "Tries to make an action more difficult so that a user is less likely to do that action.",
     "Forced Action": "Forces a user to complete extra, unrelated tasks to do something that should be simple.",
     "Hidden Costs": "Conceals or downplays additional fees and charges to mislead users.",
-    "Not Dark Pattern": "Normal, non-manipulative content that doesn't use deceptive design."
+    "Not Dark Pattern": "Normal, non-manipulative content that doesn't use deceptive design.",
+    "Countdown": "Countdown timers induce urgency by implying limited availability through a ticking clock."
 };
 
 // Function to extract text segments from DOM elements
@@ -43,6 +44,8 @@ function segments(element) {
 let detectedPatterns = [];
 let currentPatternIndex = -1;
 let allElements = [];
+let countdownObserver = null;
+const countdownSeen = new WeakSet();
 
 // Make scrape function globally accessible
 window.scrape = function scrape() {
@@ -161,12 +164,113 @@ window.scrape = function scrape() {
 
             // Send patterns data to popup
             sendPatternsToPopup(detectedPatterns);
+
+            // Start live countdown detection after initial API processing
+            try {
+                startCountdownDetection();
+            } catch (e) {
+                console.warn("⚠️ Countdown detection could not start:", e);
+            }
         })
         .catch((error) => {
             console.error("❌ Ethical Eye API Error:", error);
             console.error("❌ Make sure the API server is running: python api/ethical_eye_api.py");
             alert("❌ Ethical Eye Error: " + error.message + "\n\nMake sure the API server is running!");
         });
+}
+
+// Lightweight live detection of ticking countdown timers in the DOM
+function startCountdownDetection() {
+    if (countdownObserver) {
+        return; // already running
+    }
+
+    // Regex for typical countdown formats: 00:00, 00:00:00, with or without words like hours/minutes
+    const reg = /(?:\d{1,2}\s*:\s*){1,3}\d{1,2}|(?:\d{1,2}\s*(?:days?|hours?|minutes?|seconds?|tage?|stunden?|minuten?|sekunden?|[a-zA-Z]{1,3}\.?)(?:\s*und)?\s*){2,4}/gi;
+    const regBad = /(?:\d{1,2}\s*:\s*){4,}\d{1,2}|(?:\d{1,2}\s*(?:days?|hours?|minutes?|seconds?|tage?|stunden?|minuten?|sekunden?|[a-zA-Z]{1,3}\.?)(?:\s*und)?\s*){5,}/gi;
+
+    const previousTextByNode = new WeakMap();
+
+    function looksLikeCountdown(oldText, newText) {
+        if (!oldText || !newText || oldText === newText) return false;
+
+        let matchesOld = oldText.replace(regBad, "").match(reg);
+        let matchesNew = newText.replace(regBad, "").match(reg);
+        if (matchesNew == null || matchesOld == null) return false;
+        if (matchesNew.length !== matchesOld.length) return false;
+
+        for (let i = 0; i < matchesNew.length; i++) {
+            const numbersNew = matchesNew[i].match(/\d+/gi) || [];
+            const numbersOld = matchesOld[i].match(/\d+/gi) || [];
+            if (numbersNew.length !== numbersOld.length) continue;
+            for (let x = 0; x < numbersNew.length; x++) {
+                const nNew = parseInt(numbersNew[x]);
+                const nOld = parseInt(numbersOld[x]);
+                if (Number.isNaN(nNew) || Number.isNaN(nOld)) continue;
+                if (nNew > nOld) {
+                    break; // got larger before decreasing → not a ticking countdown
+                }
+                if (nNew < nOld) {
+                    return true; // decreased → likely a countdown
+                }
+            }
+        }
+        return false;
+    }
+
+    function markCountdown(node) {
+        if (!node || countdownSeen.has(node)) return;
+        countdownSeen.add(node);
+        const text = node.innerText.trim();
+        const pattern = {
+            element: node,
+            category: "Countdown",
+            confidence: 0.95,
+            explanation: "Detected an actively ticking countdown timer indicating urgency.",
+            text: text
+        };
+
+        detectedPatterns.push(pattern);
+        window.ethicalEyePatterns = detectedPatterns;
+
+        // Update count element if present
+        let g = document.getElementById("insite_count");
+        if (g) {
+            g.value = detectedPatterns.length;
+        }
+        sendDarkPatterns(detectedPatterns.length);
+        sendPatternsToPopup(detectedPatterns);
+    }
+
+    countdownObserver = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+            if (mutation.type === "childList") {
+                mutation.addedNodes.forEach((n) => {
+                    if (n.nodeType === Node.ELEMENT_NODE) {
+                        const el = n;
+                        const text = el.innerText?.trim();
+                        if (!text) return;
+                        previousTextByNode.set(el, text);
+                    }
+                });
+            }
+            if (mutation.type === "characterData" || mutation.type === "childList") {
+                const targetEl = mutation.target.nodeType === Node.TEXT_NODE ? mutation.target.parentElement : mutation.target;
+                if (!targetEl || targetEl.nodeType !== Node.ELEMENT_NODE) continue;
+                const newText = targetEl.innerText?.trim();
+                if (!newText) continue;
+                const oldText = previousTextByNode.get(targetEl) || "";
+                if (looksLikeCountdown(oldText, newText)) {
+                    markCountdown(targetEl);
+                }
+                previousTextByNode.set(targetEl, newText);
+            }
+        }
+    });
+
+    const config = { subtree: true, childList: true, characterData: true };
+    countdownObserver.observe(document.body, config);
+    console.log("⏳ Ethical Eye: Live countdown detection active.");
 }
 
 function highlight(element, type, confidence, explanation) {
