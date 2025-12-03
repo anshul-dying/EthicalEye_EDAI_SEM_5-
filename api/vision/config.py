@@ -24,6 +24,7 @@ class VisionConfig:
         os.getenv("VISION_ENABLE_TEXT_CLASSIFIER", "0") not in {"0", "false", "False"}
     )
     detector_min_area_ratio: float = float(os.getenv("VISION_DETECTOR_MIN_AREA", 0.0025))
+    multimodal_model_path: str | None = os.getenv("MULTIMODAL_MODEL_PATH", "models/multimodal_v2/best_model.pt")
 
 
 def get_config() -> VisionConfig:

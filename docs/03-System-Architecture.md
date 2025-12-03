@@ -7,12 +7,14 @@ The Ethical Eye extension follows a **layered architecture** with clear separati
 ## 2. Architectural Patterns
 
 ### 2.1 Primary Patterns
+
 - **Layered Architecture**: Clear separation between presentation, business logic, and data layers
 - **Microservices**: Backend API as independent service
 - **Event-Driven**: Asynchronous communication between components
 - **Plugin Architecture**: Extensible Chrome extension design
 
 ### 2.2 Design Principles
+
 - **Single Responsibility**: Each component has one clear purpose
 - **Open/Closed**: Open for extension, closed for modification
 - **Dependency Inversion**: High-level modules don't depend on low-level modules
@@ -58,8 +60,10 @@ The Ethical Eye extension follows a **layered architecture** with clear separati
 │  │   ├── Normalization                                     │
 │  │   └── Feature Extraction                                │
 │  ├── Pattern Classification                                │
-│  │   ├── DistilBERT Model                                  │
-│  │   ├── Confidence Scoring                                │
+│  │   ├── DistilBERT Model (Text)                          │
+│  │   ├── Multimodal Model v2 (Vision+Text)               │
+│  │   ├── Layout Analyzer (HTML/CSS)                       │
+│  │   ├── Confidence Scoring                               │
 │  │   └── Category Mapping                                  │
 │  ├── Explainable AI (XAI)                                 │
 │  │   ├── SHAP Value Computation                            │
@@ -195,7 +199,10 @@ graph TD
 │  ├── PyTorch (Deep Learning Framework)                    │
 │  ├── Transformers (Hugging Face)                          │
 │  ├── DistilBERT (Pre-trained Model)                       │
-│  └── SHAP (Explainable AI)                                │
+│  ├── Multimodal Model v2 (MobileViT + DistilBERT)        │
+│  ├── Torchvision (Computer Vision)                        │
+│  ├── SHAP (Explainable AI)                                │
+│  └── BeautifulSoup + CSSUtils (Layout Analysis)           │
 │  Data Processing                                           │
 │  ├── NumPy (Numerical Computing)                          │
 │  ├── Pandas (Data Manipulation)                           │
@@ -395,24 +402,28 @@ graph TD
 ## 10. Quality Attributes
 
 ### 10.1 Performance Requirements
+
 - **Response Time**: < 2 seconds for page analysis
 - **Throughput**: 100+ concurrent users
 - **Resource Usage**: < 100MB memory footprint
 - **Availability**: 99.9% uptime
 
 ### 10.2 Reliability Requirements
+
 - **Fault Tolerance**: Graceful degradation on errors
 - **Error Recovery**: Automatic retry mechanisms
 - **Data Integrity**: Consistent results across requests
 - **Backup Strategy**: Model and configuration backups
 
 ### 10.3 Usability Requirements
+
 - **User Interface**: Intuitive and responsive design
 - **Accessibility**: WCAG 2.1 AA compliance
 - **Documentation**: Comprehensive user guides
 - **Support**: Community and technical support
 
 ### 10.4 Maintainability Requirements
+
 - **Code Quality**: Clean, documented, testable code
 - **Modularity**: Loosely coupled, highly cohesive components
 - **Extensibility**: Easy to add new features
@@ -420,4 +431,4 @@ graph TD
 
 ---
 
-*This System Architecture document provides a comprehensive overview of the Ethical Eye extension's architectural design, including component relationships, technology choices, and quality attributes.*
+_This System Architecture document provides a comprehensive overview of the Ethical Eye extension's architectural design, including component relationships, technology choices, and quality attributes._

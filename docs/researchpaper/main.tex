@@ -38,7 +38,7 @@ Pune, India\\
 Pune, India\\
 \url{sonarkar.aashana23@vit.edu}}
 \and
-\IEEEauthorblockN{4\textsuperscript{th} Duha Anasri}
+\IEEEauthorblockN{4\textsuperscript{th} DuhaZuhayr Ansari}
 \IEEEauthorblockA{\textit{Department of Artificial Intelligence and Data Science}\\
 \textit{Vishwakarma Institute of Technology, Pune}\\
 Pune, India\\
@@ -170,7 +170,7 @@ Ethical Eye uses a lightweight client-server design (Fig. \ref{fig:architecture}
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=\columnwidth]{architecture.png}
+\includegraphics[width=\columnwidth]{figures/architecture.png}
 \caption{System Architecture of Ethical Eye}
 \label{fig:architecture}
 \end{figure}
@@ -208,7 +208,7 @@ Using \texttt{shap.Explainer} with a partition masker, we identify tokens most r
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=\columnwidth]{shap_example.png}
+\includegraphics[width=\columnwidth]{figures/shap_example.png}
 \caption{SHAP Explanation Overlay on a Live E-Commerce Page}
 \label{fig:shap}
 \end{figure}
@@ -216,7 +216,7 @@ Using \texttt{shap.Explainer} with a partition masker, we identify tokens most r
 \section{Experiments and Results}
 
 \subsection{Quantitative Evaluation}
-As shown in Table \ref{tab:results}, our DistilBERT model achieves state-of-the-art performance, significantly outperforming all baselines in accuracy, F1-score, and inference speed. On the balanced test set of 253 samples, we achieve 97.6\% accuracy with a weighted F1-score of 0.976 and macro F1-score of 0.975. Per-class performance and confusion patterns are visualized in Fig. \ref{fig:perclass} and \ref{fig:cm}. Most pattern categories achieve F1-scores above 0.90, with perfect performance (F1=1.0) on Forced Action, Obstruction, Scarcity, Sneaking, and Urgency categories. Macro-average ROC curves appear in Fig. \ref{fig:curves}.
+As shown in Table \ref{tab:results}, our DistilBERT model achieves state-of-the-art performance, significantly outperforming all baselines in accuracy, F1-score, and inference speed. On the balanced test set of 253 samples, we achieve 97.6\% accuracy with a weighted F1-score of 0.976 and macro F1-score of 0.975. Per-class performance and confusion patterns are visualized in Fig. 1a and Fig. 1b. Most pattern categories achieve F1-scores above 0.90, with perfect performance (F1=1.0) on Forced Action, Obstruction, Scarcity, Sneaking, and Urgency categories. Macro-average ROC curves appear in Fig. \ref{fig:curves}.
 
 \begin{figure}[!t]
 \centering

@@ -17,6 +17,7 @@ from .clip_scorer import ClipScorer
 from .config import VisionConfig, get_config
 from .detector import VisionDetector
 from .ocr import OcrExtractor
+from .multimodal_model import MultimodalAnalyzer
 
 
 class VisionAnalyzer:
@@ -32,6 +33,9 @@ class VisionAnalyzer:
         )
         self.logger = logging.getLogger("vision.analyzer")
         self.text_classifier = self._init_text_classifier()
+        
+        # Initialize multimodal model (v2)
+        self.multimodal_analyzer = self._init_multimodal_analyzer()
 
     def analyze(self, image_bytes: bytes) -> Tuple[List[Dict[str, object]], Dict[str, object]]:
         """Return detections and metadata for the supplied screenshot bytes."""
@@ -53,25 +57,44 @@ class VisionAnalyzer:
             heuristics = self._compute_heuristics(proposal, layout_stats, bgr_image=bgr)
             ocr_result = self.ocr.extract(proposal.crop) if self.config.enable_ocr else None
             text_analysis = self._score_text(ocr_result.text) if ocr_result else None
+            
+            # Multimodal analysis (v2) - enhanced detection
+            multimodal_result = None
+            if self.multimodal_analyzer:
+                try:
+                    multimodal_result = self.multimodal_analyzer.detect(
+                        proposal.crop,
+                        ocr_result.text if ocr_result else ""
+                    )
+                except Exception as e:
+                    self.logger.debug(f"Multimodal analysis failed: {e}")
 
             fused = self._fuse_scores(
-                clip_result, heuristics, ocr_result, text_analysis
+                clip_result, heuristics, ocr_result, text_analysis, multimodal_result
             )
             if fused["score"] < self.config.confidence_threshold:
                 continue
 
-            detections.append(
-                {
-                    "label": fused["label"],
-                    "score": fused["score"],
-                    "reason": fused["reason"],
-                    "bbox": list(proposal.bbox),
-                    "text": ocr_result.text if ocr_result else "",
-                    "heuristics": heuristics,
-                    "text_category": text_analysis.get("category") if text_analysis else None,
-                    "text_confidence": text_analysis.get("confidence") if text_analysis else None,
+            detection = {
+                "label": fused["label"],
+                "score": fused["score"],
+                "reason": fused["reason"],
+                "bbox": list(proposal.bbox),
+                "text": ocr_result.text if ocr_result else "",
+                "heuristics": heuristics,
+                "text_category": text_analysis.get("category") if text_analysis else None,
+                "text_confidence": text_analysis.get("confidence") if text_analysis else None,
+            }
+            
+            # Add multimodal detection results if available
+            if multimodal_result and not multimodal_result.get('error'):
+                detection["multimodal"] = {
+                    "top_detection": multimodal_result.get("top_detection"),
+                    "all_detections": multimodal_result.get("detections", []),
+                    "model_version": "v2"
                 }
-            )
+            
+            detections.append(detection)
 
         runtime = (time.perf_counter() - start) * 1000
         metadata = {
@@ -107,8 +130,8 @@ class VisionAnalyzer:
         return heuristics
 
     @staticmethod
-    def _fuse_scores(clip_result, heuristics, ocr_result, text_analysis) -> Dict[str, object]:
-        """Combine CLIP output, heuristics, and OCR-derived hints."""
+    def _fuse_scores(clip_result, heuristics, ocr_result, text_analysis, multimodal_result=None) -> Dict[str, object]:
+        """Combine CLIP output, heuristics, OCR-derived hints, and multimodal model results."""
 
         score = clip_result["score"]
         label = clip_result["label"]
@@ -133,16 +156,34 @@ class VisionAnalyzer:
             if text_analysis["confidence"] > score:
                 label = text_analysis["category"]
                 score = text_analysis["confidence"]
+        
+        # Multimodal model fusion (v2) - higher weight for model-driven detection
+        if multimodal_result and not multimodal_result.get('error'):
+            top_detection = multimodal_result.get("top_detection", {})
+            if top_detection.get("is_dark_pattern", False):
+                multimodal_conf = top_detection.get("confidence", 0.0)
+                multimodal_pattern = top_detection.get("pattern", "")
+                
+                # If multimodal model is confident, boost score significantly
+                if multimodal_conf > 0.5:
+                    score = max(score, multimodal_conf * 0.8)  # Blend with existing score
+                    # Use multimodal label if it's more specific
+                    if multimodal_pattern in ["Color Manipulation", "Deceptive UI Contrast", 
+                                             "Hidden Subscription Checkbox", "Fake Progress Bar"]:
+                        label = multimodal_pattern
+                elif multimodal_conf > 0.3:
+                    # Moderate boost for lower confidence
+                    score += multimodal_conf * 0.2
 
         score = float(min(score, 0.99))
         reason = VisionAnalyzer._compose_reason(
-            label, score, heuristics, ocr_result, text_analysis
+            label, score, heuristics, ocr_result, text_analysis, multimodal_result
         )
 
         return {"label": label, "score": score, "reason": reason}
 
     @staticmethod
-    def _compose_reason(label: str, score: float, heuristics, ocr_result, text_analysis) -> str:
+    def _compose_reason(label: str, score: float, heuristics, ocr_result, text_analysis, multimodal_result=None) -> str:
         cues = []
         if heuristics.get("button_like"):
             cues.append("button-like shape")
@@ -154,6 +195,10 @@ class VisionAnalyzer:
             cues.append(f"OCR text: '{ocr_result.text[:40]}'")
         if text_analysis and text_analysis.get("category"):
             cues.append(f"text classified as {text_analysis['category']}")
+        if multimodal_result and not multimodal_result.get('error'):
+            top_detection = multimodal_result.get("top_detection", {})
+            if top_detection.get("is_dark_pattern", False):
+                cues.append(f"multimodal model v2 detected {top_detection.get('pattern', 'pattern')}")
 
         cue_text = "; ".join(cues) if cues else "visual features"
         return f"{label} with {score:.0%} confidence based on {cue_text}"
@@ -179,4 +224,34 @@ class VisionAnalyzer:
             "confidence": float(analysis.get("confidence", 0.0)),
             "is_dark_pattern": analysis.get("is_dark_pattern", False),
         }
+    
+    def _init_multimodal_analyzer(self):
+        """Initialize multimodal model analyzer (v2)"""
+        try:
+            import os
+            # Use config path, fallback to default trained model path
+            model_path = self.config.multimodal_model_path
+            if model_path and not os.path.exists(model_path):
+                # Try relative path from project root
+                project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                full_path = os.path.join(project_root, model_path)
+                if os.path.exists(full_path):
+                    model_path = full_path
+                else:
+                    self.logger.warning(f"Multimodal model not found at {model_path}, using untrained model")
+                    model_path = None
+            
+            device = self.config.device
+            
+            self.logger.info("Initializing multimodal model (MobileViT + DistilBERT)...")
+            if model_path:
+                self.logger.info(f"Loading trained model from: {model_path}")
+            analyzer = MultimodalAnalyzer(model_path=model_path, device=device)
+            self.logger.info("Multimodal model initialized successfully!")
+            return analyzer
+        except Exception as exc:
+            self.logger.warning(f"Multimodal analyzer unavailable (will use CLIP fallback): {exc}")
+            import traceback
+            self.logger.debug(traceback.format_exc())
+            return None
 

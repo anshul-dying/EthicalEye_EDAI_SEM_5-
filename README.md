@@ -28,9 +28,24 @@ Receive real-time alerts when visiting a website that employs deceptive design p
 
 Access resources within the extension to learn more about dark patterns and how to protect yourself online.
 
-### 5. Multimodal Screenshot Analyzer
+### 5. Multimodal Screenshot Analyzer (v2)
 
-Upload screenshots in the full-page results view to detect visual dark patterns such as disguised ads, fake scarcity pop-ups, or color manipulation. The analyzer combines CLIP embeddings, computer vision heuristics, and OCR+DistilBERT text cues to highlight suspicious regions directly on the screenshot.
+Upload screenshots in the full-page results view to detect visual dark patterns such as disguised ads, fake scarcity pop-ups, or color manipulation. The analyzer combines:
+- **CLIP embeddings** for visual understanding
+- **Multimodal Model v2** (MobileViT + DistilBERT) for trained vision+text detection
+- **Computer vision heuristics** for layout analysis
+- **OCR + DistilBERT** text cues
+- **Layout Analyzer** for HTML/CSS structure analysis
+
+Detects: Color Manipulation, Deceptive UI Contrast, Hidden Subscription Checkboxes, Fake Progress Bars
+
+### 6. Layout-Based Feature Extraction
+
+Analyzes HTML/CSS structure to detect visual misdirection:
+- **Button order** analysis for misdirection patterns
+- **Font size differences** for hierarchy manipulation
+- **Hidden elements** detection (CSS display:none, visibility:hidden)
+- **Visual hierarchy tricks** (z-index, positioning)
 
 ## Installation
 
@@ -47,11 +62,21 @@ After installation, the Ethical Eye icon will appear in your browser toolbar. Si
 ### Running the Multimodal Pipeline
 
 1. Install dependencies (`pip install -r requirements.txt`). Ensure system Tesseract is available for OCR.
-2. Start the Flask API gateway (now serving both text and screenshot analysis):
+2. **Train the multimodal model** (optional, but recommended):
+   ```bash
+   python training/train_multimodal.py
+   ```
+   This trains the MobileViT + DistilBERT hybrid model on your dataset. Trained model will be saved to `models/multimodal_v2/best_model.pt`
+3. Start the Flask API gateway (now serving text, screenshot, and layout analysis):
    ```bash
    python api/ethical_eye_api.py
    ```
-3. Open `app/results.html` (or the extension’s “view full results” link) and upload a screenshot. Bounding boxes and confidence scores will render on top of the image, while textual explanations show below.
+4. Open `app/results.html` (or the extension's "view full results" link) and upload a screenshot. Bounding boxes and confidence scores will render on top of the image, while textual explanations show below.
+
+**New API Endpoints:**
+- `POST /vision/analyze` - Screenshot analysis with multimodal model v2
+- `POST /analyze_layout` - HTML/CSS layout structure analysis
+- `GET /model_info` - Check multimodal model status
 
 For quick verification outside the UI, use the smoke test:
 

@@ -17,7 +17,8 @@ import shap
 from datetime import datetime
 import logging
 import warnings
-from api.vision import VisionAnalyzer
+from vision import VisionAnalyzer
+from layout_analyzer import LayoutAnalyzer
 warnings.filterwarnings('ignore')
 
 # Setup logging
@@ -458,6 +459,14 @@ except Exception as e:
     logger.error(f"Failed to initialize vision analyzer: {e}")
     vision_analyzer = None
 
+# Initialize layout analyzer (HTML/CSS structure analysis)
+try:
+    layout_analyzer = LayoutAnalyzer()
+    logger.info("Layout analyzer ready!")
+except Exception as e:
+    logger.error(f"Failed to initialize layout analyzer: {e}")
+    layout_analyzer = None
+
 @app.route('/', methods=['GET'])
 def health_check():
     """Health check endpoint"""
@@ -603,14 +612,64 @@ def get_model_info():
     if api is None:
         return jsonify({'error': 'API not initialized'}), 500
     
+    # Get multimodal model info
+    multimodal_info = {}
+    if vision_analyzer and vision_analyzer.multimodal_analyzer:
+        multimodal_info = {
+            'multimodal_v2_available': True,
+            'multimodal_model_loaded': vision_analyzer.multimodal_analyzer.model is not None,
+            'multimodal_device': str(vision_analyzer.multimodal_analyzer.device),
+            'multimodal_classes': vision_analyzer.multimodal_analyzer.class_names
+        }
+    else:
+        multimodal_info = {
+            'multimodal_v2_available': False,
+            'multimodal_model_loaded': False
+        }
+    
     return jsonify({
         'model_path': api.model_path,
         'model_type': 'DistilBERT',
         'num_labels': api.model.config.num_labels,
         'labels': list(api.model.config.id2label.values()),
         'device': str(api.device),
-        'shap_available': api.explainer is not None
+        'shap_available': api.explainer is not None,
+        'layout_analyzer_available': layout_analyzer is not None,
+        **multimodal_info
     })
+
+@app.route('/analyze_layout', methods=['POST'])
+def analyze_layout():
+    """Analyze HTML/CSS layout for visual misdirection patterns"""
+    if layout_analyzer is None:
+        return jsonify({'error': 'Layout analyzer not initialized'}), 500
+    
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        html_content = data.get('html', '')
+        css_content = data.get('css', None)
+        
+        if not html_content:
+            return jsonify({'error': 'No HTML content provided'}), 400
+        
+        logger.info("Analyzing HTML layout structure...")
+        
+        # Analyze layout
+        features = layout_analyzer.analyze_html(html_content, css_content)
+        
+        logger.info(f"Layout analysis complete. Found {len(features.get('suspicious_patterns', []))} suspicious patterns")
+        
+        return jsonify({
+            'features': features,
+            'analysis_timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in analyze_layout: {e}")
+        return jsonify({'error': str(e)}), 500
 
 @app.errorhandler(404)
 def not_found(error):

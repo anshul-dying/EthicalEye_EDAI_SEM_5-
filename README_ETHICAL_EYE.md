@@ -23,11 +23,15 @@
 ### Components
 - **Chrome Extension**: Frontend interface with visual highlighting
 - **DistilBERT Model**: Fine-tuned for dark pattern classification
+- **Multimodal Model v2**: MobileViT + DistilBERT hybrid for vision+text detection
+- **Layout Analyzer**: HTML/CSS structure analysis for visual misdirection
 - **SHAP Explainer**: Generates transparent explanations
 - **Flask API**: Backend service for real-time analysis
 - **Research Framework**: Comprehensive evaluation and plotting
 
 ### Dark Pattern Categories
+
+**Text-Based Patterns (DistilBERT):**
 1. **Urgency** - Time pressure tactics
 2. **Scarcity** - False limited availability
 3. **Social Proof** - Fake social validation
@@ -37,6 +41,18 @@
 7. **Sneaking** - Hidden information
 8. **Hidden Costs** - Concealed fees
 9. **Not Dark Pattern** - Normal content
+
+**Visual Patterns (Multimodal v2):**
+- **Color Manipulation** - Deceptive use of colors
+- **Deceptive UI Contrast** - Misleading contrast ratios
+- **Hidden Subscription Checkbox** - Obscured subscription options
+- **Fake Progress Bar** - Misleading progress indicators
+
+**Layout Patterns (Layout Analyzer):**
+- **Button Order Misdirection** - Suspicious button placement
+- **Font Size Manipulation** - Extreme size differences
+- **Hidden Important Information** - CSS-hidden content
+- **Visual Hierarchy Tricks** - Z-index and positioning manipulation
 
 ## 🚀 Quick Start
 
@@ -178,6 +194,30 @@ Content-Type: application/json
 #### Get Pattern Information
 ```bash
 GET http://127.0.0.1:5000/patterns
+```
+
+#### Analyze Screenshot (Multimodal v2)
+```bash
+POST http://127.0.0.1:5000/vision/analyze
+Content-Type: multipart/form-data
+
+file: [screenshot image]
+```
+
+#### Analyze HTML Layout
+```bash
+POST http://127.0.0.1:5000/analyze_layout
+Content-Type: application/json
+
+{
+  "html": "<html>...</html>",
+  "css": "/* optional CSS */"
+}
+```
+
+#### Get Model Information
+```bash
+GET http://127.0.0.1:5000/model_info
 ```
 
 ### Response Format
