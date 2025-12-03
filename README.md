@@ -1,4 +1,4 @@
-# DarkPatternLLM
+# Ethical Eye
 
 DarkPatternLLM is a project aimed at detecting and combating dark patterns on websites using advanced Language Models (LLMs). This tool provides users with a more transparent and user-friendly online experience.
 
@@ -25,7 +25,7 @@ Access resources within the extension to learn more about dark patterns and how 
 
 ## Installation
 
-To install the DarkPatternLLM, follow these steps:
+To install the Ethical Eye, follow these steps:
 
 1. Download the extension from the [Chrome Web Store](#).
 2. Open Google Chrome and navigate to the "Extensions" page (`chrome://extensions`).
@@ -33,7 +33,7 @@ To install the DarkPatternLLM, follow these steps:
 
 ## Usage
 
-After installation, the DarkPatternLLM icon will appear in your browser toolbar. Simply visit any website, and the extension will automatically analyze the page for dark patterns. If a dark pattern is detected, you will receive a notification, and the relevant elements will be highlighted on the page.
+After installation, the Ethical Eye icon will appear in your browser toolbar. Simply visit any website, and the extension will automatically analyze the page for dark patterns. If a dark pattern is detected, you will receive a notification, and the relevant elements will be highlighted on the page.
 
 ## Contributing
 

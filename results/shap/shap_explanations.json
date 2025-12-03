@@ -1,0 +1,207 @@
+[
+  {
+    "text": "Hurry! Only 2 left in stock!",
+    "predicted_class": "Scarcity",
+    "confidence": 0.9948049187660217,
+    "top_words": [
+      [
+        "only",
+        1.0
+      ],
+      [
+        "left",
+        1.0
+      ]
+    ],
+    "explanation": "This text is classified as 'Scarcity' with 99.5% confidence. Key indicators include: only, left.",
+    "shap_values": [],
+    "tokens": [
+      "hurry",
+      "!",
+      "only",
+      "2",
+      "left",
+      "in",
+      "stock",
+      "!"
+    ]
+  },
+  {
+    "text": "Join 10,000+ satisfied customers",
+    "predicted_class": "Social Proof",
+    "confidence": 0.9367820620536804,
+    "top_words": [
+      [
+        "join",
+        1.0
+      ],
+      [
+        "customers",
+        1.0
+      ]
+    ],
+    "explanation": "This text is classified as 'Social Proof' with 93.7% confidence. Key indicators include: join, customers.",
+    "shap_values": [],
+    "tokens": [
+      "join",
+      "10",
+      ",",
+      "000",
+      "+",
+      "satisfied",
+      "customers"
+    ]
+  },
+  {
+    "text": "Limited time offer - expires soon!",
+    "predicted_class": "Urgency",
+    "confidence": 0.992395281791687,
+    "top_words": [
+      [
+        "limited time",
+        1.0
+      ],
+      [
+        "expires",
+        1.0
+      ]
+    ],
+    "explanation": "This text is classified as 'Urgency' with 99.2% confidence. Key indicators include: limited time, expires.",
+    "shap_values": [],
+    "tokens": [
+      "limited",
+      "time",
+      "offer",
+      "-",
+      "ex",
+      "##pire",
+      "##s",
+      "soon",
+      "!"
+    ]
+  },
+  {
+    "text": "Free shipping on orders over $50",
+    "predicted_class": "Urgency",
+    "confidence": 0.8988074660301208,
+    "top_words": [],
+    "explanation": "This text is classified as 'Urgency' with 89.9% confidence.",
+    "shap_values": [],
+    "tokens": [
+      "free",
+      "shipping",
+      "on",
+      "orders",
+      "over",
+      "$",
+      "50"
+    ]
+  },
+  {
+    "text": "Don't miss out on this exclusive deal",
+    "predicted_class": "Misdirection",
+    "confidence": 0.9852515459060669,
+    "top_words": [],
+    "explanation": "This text is classified as 'Misdirection' with 98.5% confidence.",
+    "shap_values": [],
+    "tokens": [
+      "don",
+      "'",
+      "t",
+      "miss",
+      "out",
+      "on",
+      "this",
+      "exclusive",
+      "deal"
+    ]
+  },
+  {
+    "text": "Only 3 items remaining at this price",
+    "predicted_class": "Scarcity",
+    "confidence": 0.9935316443443298,
+    "top_words": [
+      [
+        "only",
+        1.0
+      ],
+      [
+        "remaining",
+        1.0
+      ]
+    ],
+    "explanation": "This text is classified as 'Scarcity' with 99.4% confidence. Key indicators include: only, remaining.",
+    "shap_values": [],
+    "tokens": [
+      "only",
+      "3",
+      "items",
+      "remaining",
+      "at",
+      "this",
+      "price"
+    ]
+  },
+  {
+    "text": "Act now before it's too late!",
+    "predicted_class": "Scarcity",
+    "confidence": 0.971598207950592,
+    "top_words": [],
+    "explanation": "This text is classified as 'Scarcity' with 97.2% confidence.",
+    "shap_values": [],
+    "tokens": [
+      "act",
+      "now",
+      "before",
+      "it",
+      "'",
+      "s",
+      "too",
+      "late",
+      "!"
+    ]
+  },
+  {
+    "text": "Welcome to our website",
+    "predicted_class": "Not Dark Pattern",
+    "confidence": 0.7685793042182922,
+    "top_words": [],
+    "explanation": "This text is classified as 'Not Dark Pattern' with 76.9% confidence.",
+    "shap_values": [],
+    "tokens": [
+      "welcome",
+      "to",
+      "our",
+      "website"
+    ]
+  },
+  {
+    "text": "Thank you for your purchase",
+    "predicted_class": "Misdirection",
+    "confidence": 0.9889761209487915,
+    "top_words": [],
+    "explanation": "This text is classified as 'Misdirection' with 98.9% confidence.",
+    "shap_values": [],
+    "tokens": [
+      "thank",
+      "you",
+      "for",
+      "your",
+      "purchase"
+    ]
+  },
+  {
+    "text": "Contact us for support",
+    "predicted_class": "Not Dark Pattern",
+    "confidence": 0.645075261592865,
+    "top_words": [],
+    "explanation": "This text is classified as 'Not Dark Pattern' with 64.5% confidence.",
+    "shap_values": [],
+    "tokens": [
+      "contact",
+      "us",
+      "for",
+      "support"
+    ]
+  }
+]

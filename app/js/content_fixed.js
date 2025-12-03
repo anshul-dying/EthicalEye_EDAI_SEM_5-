@@ -61,6 +61,7 @@ window.scrape = function scrape() {
     console.log("🔍 Ethical Eye: Found", allElements.length, "text elements");
 
     let filtered_elements = [];
+    let mappedElements = []; // Store references to elements corresponding to filtered_elements
 
     for (let i = 0; i < allElements.length; i++) {
         let text = allElements[i].innerText.trim().replace(/\t/g, " ");
@@ -82,101 +83,138 @@ window.scrape = function scrape() {
             lowerText.includes('chrome://extensions') ||
             lowerText.includes('should') && lowerText.includes('highlighted') ||
             lowerText.includes('welcome') && lowerText.includes('website') ||
-            text.length < 10; // Skip very short text
+            text.length < 5; // Reduced length check to catch short link text
 
         if (shouldSkip) {
             continue;
         }
 
         filtered_elements.push(text);
+        mappedElements.push(allElements[i]);
     }
 
     // Prepare segments for API
-    const apiSegments = filtered_elements.map((text, index) => ({
-        text: text,
-        element_id: `segment_${index}`,
-        position: { x: 0, y: 0 } // Simplified position
-    }));
+    const apiSegments = filtered_elements.map((text, index) => {
+        const element = mappedElements[index];
+        let linkUrl = null;
+        
+        // Check if element is a link or inside a link
+        if (element.tagName === 'A') {
+            linkUrl = element.href;
+        } else {
+            const parentLink = element.closest('a');
+            if (parentLink) {
+                linkUrl = parentLink.href;
+            }
+        }
+
+        return {
+            text: text,
+            link: linkUrl, // Add link URL
+            element_id: `segment_${index}`,
+            position: { x: 0, y: 0 }
+        };
+    });
 
     console.log("🔍 Ethical Eye: Starting analysis...");
-    console.log("🔍 Sending", apiSegments.length, "segments to API");
+    console.log("🔍 Found", apiSegments.length, "segments to analyze");
     console.log("🔍 API endpoint:", endpoint);
-    console.log("🔍 Request payload:", JSON.stringify({
-        segments: apiSegments,
-        confidence_threshold: 0.5
-    }));
 
-    fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            segments: apiSegments,
-            confidence_threshold: 0.5  // Increased from 0.15 to 0.5 (50%)
-        }),
-    })
-        .then((resp) => {
-            console.log("🔍 API Response status:", resp.status);
-            return resp.json();
+    // Batch processing configuration
+    const BATCH_SIZE = 30;
+    const totalBatches = Math.ceil(apiSegments.length / BATCH_SIZE);
+    let processedBatches = 0;
+    
+    // Clear previous patterns initially
+    detectedPatterns = [];
+    currentPatternIndex = -1;
+
+    // Function to process a single batch
+    function processBatch(batchIndex) {
+        if (batchIndex >= totalBatches) {
+            console.log("✅ Ethical Eye: All batches processed");
+            finishAnalysis();
+            return;
+        }
+
+        const start = batchIndex * BATCH_SIZE;
+        const end = Math.min(start + BATCH_SIZE, apiSegments.length);
+        const batchSegments = apiSegments.slice(start, end);
+
+        console.log(`🔍 Processing batch ${batchIndex + 1}/${totalBatches} (${start}-${end})`);
+
+        fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                segments: batchSegments,
+                confidence_threshold: 0.5
+            }),
         })
+        .then((resp) => resp.json())
         .then((data) => {
-            console.log("🔍 API Response data:", data);
-
-            // Clear previous patterns
-            detectedPatterns = [];
-            currentPatternIndex = -1;
-
-            let element_index = 0;
-            let filtered_index = 0;
-
-            for (let i = 0; i < allElements.length; i++) {
-                let text = allElements[i].innerText.trim().replace(/\t/g, " ");
-                if (text.length == 0) {
-                    continue;
-                }
-
-                const result = data.results[filtered_index];
-                if (result && result.is_dark_pattern) {
-                    detectedPatterns.push({
-                        element: allElements[i],
-                        category: result.category,
-                        confidence: result.confidence,
-                        explanation: result.explanation,
-                        text: text
-                    });
-                }
-                filtered_index++;
+            if (data.results && Array.isArray(data.results)) {
+                data.results.forEach((result, i) => {
+                    const originalIndex = start + i;
+                    if (originalIndex < mappedElements.length && result.is_dark_pattern) {
+                        detectedPatterns.push({
+                            element: mappedElements[originalIndex],
+                            category: result.category,
+                            confidence: result.confidence,
+                            explanation: result.explanation,
+                            text: filtered_elements[originalIndex],
+                            top_words: result.top_words || [],
+                            shap_values: result.shap_values || [],
+                            tokens: result.tokens || [],
+                            pattern_description: result.pattern_description || '',
+                            timestamp: result.timestamp || new Date().toISOString()
+                        });
+                    }
+                });
             }
+            
+            // Process next batch
+            processBatch(batchIndex + 1);
+        })
+        .catch((error) => {
+            console.error(`❌ Ethical Eye: Error processing batch ${batchIndex + 1}:`, error);
+            // Continue to next batch even if one fails
+            processBatch(batchIndex + 1);
+        });
+    }
 
-            console.log("🔍 Ethical Eye: Found", detectedPatterns.length, "dark patterns");
+    function finishAnalysis() {
+        console.log("🔍 Ethical Eye: Found", detectedPatterns.length, "dark patterns total");
 
-            // Store patterns globally for navigation
-            window.ethicalEyePatterns = detectedPatterns;
-            window.ethicalEyeCurrentIndex = -1;
+        // Store patterns globally for navigation
+        window.ethicalEyePatterns = detectedPatterns;
+        window.ethicalEyeCurrentIndex = -1;
 
-            // Send count to popup
-            let g = document.createElement("div");
+        // Send count to popup
+        let g = document.getElementById("insite_count");
+        if (!g) {
+            g = document.createElement("div");
             g.id = "insite_count";
-            g.value = detectedPatterns.length;
             g.style.opacity = 0;
             g.style.position = "fixed";
             document.body.appendChild(g);
-            sendDarkPatterns(detectedPatterns.length);
+        }
+        g.value = detectedPatterns.length;
+        
+        sendDarkPatterns(detectedPatterns.length);
+        sendPatternsToPopup(detectedPatterns);
+        storeFullPatternsData(detectedPatterns);
 
-            // Send patterns data to popup
-            sendPatternsToPopup(detectedPatterns);
+        // Start live countdown detection
+        try {
+            startCountdownDetection();
+        } catch (e) {
+            console.warn("⚠️ Countdown detection could not start:", e);
+        }
+    }
 
-            // Start live countdown detection after initial API processing
-            try {
-                startCountdownDetection();
-            } catch (e) {
-                console.warn("⚠️ Countdown detection could not start:", e);
-            }
-        })
-        .catch((error) => {
-            console.error("❌ Ethical Eye API Error:", error);
-            console.error("❌ Make sure the API server is running: python api/ethical_eye_api.py");
-            alert("❌ Ethical Eye Error: " + error.message + "\n\nMake sure the API server is running!");
-        });
+    // Start processing batches
+    processBatch(0);
 }
 
 // Lightweight live detection of ticking countdown timers in the DOM
@@ -329,6 +367,25 @@ function sendPatternsToPopup(patterns) {
             explanation: p.explanation,
             text: p.text.substring(0, 100) + (p.text.length > 100 ? "..." : "")
         }))
+    });
+}
+
+// Store full patterns data for results page
+function storeFullPatternsData(patterns) {
+    // Store in chrome.storage for results page access
+    chrome.storage.local.set({
+        'ethicalEyeFullResults': patterns.map(p => ({
+            category: p.category,
+            confidence: p.confidence,
+            explanation: p.explanation,
+            text: p.text,
+            top_words: p.top_words || [],
+            shap_values: p.shap_values || [],
+            tokens: p.tokens || [],
+            pattern_description: p.pattern_description || '',
+            timestamp: p.timestamp || new Date().toISOString()
+        })),
+        'ethicalEyeResultsTimestamp': new Date().toISOString()
     });
 }
 

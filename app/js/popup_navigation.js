@@ -26,34 +26,56 @@ document.addEventListener('DOMContentLoaded', function () {
 
             chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
                 if (tabs && tabs[0]) {
-                    console.log("🔍 Ethical Eye: Sending analyze message to tab:", tabs[0].id);
+                    const tab = tabs[0];
+                    
+                    // Check if it's a valid URL
+                    if (tab.url.startsWith("chrome://") || tab.url.startsWith("edge://") || 
+                        tab.url.startsWith("about:") || tab.url.startsWith("chrome-extension://") ||
+                        tab.url.startsWith("moz-extension://")) {
+                        alert("Cannot analyze system pages. Please navigate to a regular website.");
+                        return;
+                    }
+                    
+                    console.log("🔍 Ethical Eye: Sending analyze message to tab:", tab.id);
 
-                    // Send message with better error handling
-                    chrome.tabs.sendMessage(tabs[0].id, { message: "analyze_site" }, function (response) {
-                        if (chrome.runtime.lastError) {
-                            console.error("❌ Ethical Eye: Error sending message:", chrome.runtime.lastError);
-                            // Don't show alert for port closed errors - this is often normal
-                            if (!chrome.runtime.lastError.message.includes("port closed")) {
-                                alert("❌ Error: " + chrome.runtime.lastError.message + "\n\nTry refreshing the page and reloading the extension.");
-                            }
-                        } else {
-                            console.log("✅ Ethical Eye: Analysis started, response:", response);
-                        }
-                    });
-
-                    // Also try direct script execution as backup
+                    // First, ensure content script is loaded
                     chrome.scripting.executeScript({
-                        target: { tabId: tabs[0].id },
-                        function: function () {
-                            console.log("🔍 Ethical Eye: Direct execution - calling scrape...");
-                            if (typeof scrape === 'function') {
-                                scrape();
-                            } else {
-                                console.error("❌ Ethical Eye: scrape function not found");
-                            }
-                        }
+                        target: { tabId: tab.id },
+                        files: ['js/content_fixed.js']
+                    }).then(() => {
+                        console.log("✅ Ethical Eye: Content script ensured");
+                        
+                        // Wait a bit for script to initialize
+                        setTimeout(() => {
+                            // Try sending message
+                            chrome.tabs.sendMessage(tab.id, { message: "analyze_site" }, function (response) {
+                                if (chrome.runtime.lastError) {
+                                    const errorMsg = chrome.runtime.lastError.message;
+                                    console.log("ℹ️ Ethical Eye: Message send result:", errorMsg);
+                                    
+                                    // If message fails, try direct execution
+                                    chrome.scripting.executeScript({
+                                        target: { tabId: tab.id },
+                                        function: function () {
+                                            console.log("🔍 Ethical Eye: Direct execution - calling scrape...");
+                                            if (typeof scrape === 'function') {
+                                                scrape();
+                                            } else {
+                                                console.error("❌ Ethical Eye: scrape function not found");
+                                            }
+                                        }
+                                    }).catch(error => {
+                                        console.log("ℹ️ Ethical Eye: Direct execution error:", error.message);
+                                        alert("Please refresh the page and try again.");
+                                    });
+                                } else {
+                                    console.log("✅ Ethical Eye: Analysis started, response:", response);
+                                }
+                            });
+                        }, 200);
                     }).catch(error => {
-                        console.log("ℹ️ Ethical Eye: Direct execution not available:", error.message);
+                        console.error("❌ Ethical Eye: Could not inject script:", error);
+                        alert("Could not analyze this page. Please refresh and try again.");
                     });
                 }
             });
@@ -68,7 +90,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (tabs && tabs[0]) {
                     chrome.tabs.sendMessage(tabs[0].id, { message: "previous_pattern" }, function (response) {
                         if (chrome.runtime.lastError) {
-                            console.error("❌ Ethical Eye: Error sending previous message:", chrome.runtime.lastError);
+                            const errorMsg = chrome.runtime.lastError.message;
+                            // Only log if it's not a connection error (which is normal)
+                            if (!errorMsg.includes("Could not establish connection") && 
+                                !errorMsg.includes("Receiving end does not exist")) {
+                                console.log("ℹ️ Ethical Eye: Navigation message:", errorMsg);
+                            }
                         }
                     });
                 }
@@ -83,7 +110,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (tabs && tabs[0]) {
                     chrome.tabs.sendMessage(tabs[0].id, { message: "next_pattern" }, function (response) {
                         if (chrome.runtime.lastError) {
-                            console.error("❌ Ethical Eye: Error sending next message:", chrome.runtime.lastError);
+                            const errorMsg = chrome.runtime.lastError.message;
+                            // Only log if it's not a connection error (which is normal)
+                            if (!errorMsg.includes("Could not establish connection") && 
+                                !errorMsg.includes("Receiving end does not exist")) {
+                                console.log("ℹ️ Ethical Eye: Navigation message:", errorMsg);
+                            }
                         }
                     });
                 }
@@ -98,13 +130,27 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (tabs && tabs[0]) {
                     chrome.tabs.sendMessage(tabs[0].id, { message: "clear_highlights" }, function (response) {
                         if (chrome.runtime.lastError) {
-                            console.error("❌ Ethical Eye: Error sending clear message:", chrome.runtime.lastError);
+                            const errorMsg = chrome.runtime.lastError.message;
+                            // Only log if it's not a connection error (which is normal)
+                            if (!errorMsg.includes("Could not establish connection") && 
+                                !errorMsg.includes("Receiving end does not exist")) {
+                                console.log("ℹ️ Ethical Eye: Clear message:", errorMsg);
+                            }
                         }
                     });
                 }
             });
             currentPatternIndex = -1;
             updateUI();
+        });
+    }
+
+    // Setup view results button
+    const viewResultsButton = document.getElementById('view-results-button');
+    if (viewResultsButton) {
+        viewResultsButton.addEventListener('click', function () {
+            console.log("🔍 Ethical Eye: View full results requested");
+            chrome.tabs.create({ url: chrome.runtime.getURL('results.html') });
         });
     }
 
@@ -126,11 +172,59 @@ document.addEventListener('DOMContentLoaded', function () {
     // Send popup open message
     chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
         if (tabs && tabs[0]) {
-            chrome.tabs.sendMessage(tabs[0].id, { message: "popup_open" }, function (response) {
-                if (chrome.runtime.lastError) {
-                    console.error("❌ Ethical Eye: Error sending popup open message:", chrome.runtime.lastError);
+            const tab = tabs[0];
+            
+            // Check if it's a valid URL for content scripts
+            if (tab.url.startsWith("chrome://") || tab.url.startsWith("edge://") || 
+                tab.url.startsWith("about:") || tab.url.startsWith("chrome-extension://") ||
+                tab.url.startsWith("moz-extension://")) {
+                console.log("ℹ️ Ethical Eye: Cannot run on system pages");
+                const currentPatternInfo = document.getElementById('current-pattern-info');
+                if (currentPatternInfo) {
+                    currentPatternInfo.textContent = "Cannot analyze system pages";
+                    currentPatternInfo.style.color = "#999";
                 }
-            });
+                return;
+            }
+
+            // Try to send message with better error handling
+            try {
+                chrome.tabs.sendMessage(tab.id, { message: "popup_open" }, function (response) {
+                    if (chrome.runtime.lastError) {
+                        const errorMsg = chrome.runtime.lastError.message;
+                        console.log("ℹ️ Ethical Eye: Content script not ready:", errorMsg);
+                        
+                        // This is normal if content script hasn't loaded yet
+                        // Don't show error for "Could not establish connection" - it's expected
+                        if (!errorMsg.includes("Could not establish connection") && 
+                            !errorMsg.includes("Receiving end does not exist")) {
+                            console.error("❌ Ethical Eye: Unexpected error:", errorMsg);
+                        }
+                        
+                        // Try to inject content script if it's not loaded
+                        chrome.scripting.executeScript({
+                            target: { tabId: tab.id },
+                            files: ['js/content_fixed.js']
+                        }).then(() => {
+                            console.log("✅ Ethical Eye: Content script injected");
+                            // Try sending message again after a short delay
+                            setTimeout(() => {
+                                chrome.tabs.sendMessage(tab.id, { message: "popup_open" }, function (response) {
+                                    if (chrome.runtime.lastError) {
+                                        console.log("ℹ️ Ethical Eye: Still waiting for content script");
+                                    }
+                                });
+                            }, 100);
+                        }).catch(err => {
+                            console.log("ℹ️ Ethical Eye: Could not inject script:", err.message);
+                        });
+                    } else {
+                        console.log("✅ Ethical Eye: Popup open message sent successfully");
+                    }
+                });
+            } catch (error) {
+                console.log("ℹ️ Ethical Eye: Error handling:", error.message);
+            }
         }
     });
 });
@@ -159,15 +253,18 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 function updatePatternList() {
     const patternList = document.getElementById('pattern-list');
     const patternsContainer = document.getElementById('patterns-container');
+    const viewResultsButton = document.getElementById('view-results-button');
 
     if (!patternList || !patternsContainer) return;
 
     if (detectedPatterns.length === 0) {
         patternsContainer.style.display = 'none';
+        if (viewResultsButton) viewResultsButton.style.display = 'none';
         return;
     }
 
     patternsContainer.style.display = 'block';
+    if (viewResultsButton) viewResultsButton.style.display = 'block';
     patternList.innerHTML = '';
 
     detectedPatterns.forEach((pattern, index) => {

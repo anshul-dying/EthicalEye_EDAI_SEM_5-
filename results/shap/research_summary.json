@@ -1,0 +1,42 @@
+{
+  "total_explanations": 10,
+  "pattern_distribution": {
+    "Scarcity": 3,
+    "Social Proof": 1,
+    "Urgency": 2,
+    "Misdirection": 2,
+    "Not Dark Pattern": 2
+  },
+  "average_confidence": 0.9175801813602448,
+  "top_features": [
+    [
+      "only",
+      2.0
+    ],
+    [
+      "left",
+      1.0
+    ],
+    [
+      "join",
+      1.0
+    ],
+    [
+      "customers",
+      1.0
+    ],
+    [
+      "limited time",
+      1.0
+    ],
+    [
+      "expires",
+      1.0
+    ],
+    [
+      "remaining",
+      1.0
+    ]
+  ],
+  "analysis_timestamp": "2025-10-12T20:47:01.452292"
+}

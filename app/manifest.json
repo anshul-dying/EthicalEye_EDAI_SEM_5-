@@ -18,7 +18,8 @@
             "css": [
                 "css/insite.css"
             ],
-            "run_at": "document_end"
+            "run_at": "document_end",
+            "all_frames": true
         }
     ],
     "permissions": [
@@ -26,6 +27,12 @@
         "tabs",
         "storage",
         "scripting"
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": ["results.html"],
+            "matches": ["<all_urls>"]
+        }
     ],
     "host_permissions": [
         "<all_urls>"
