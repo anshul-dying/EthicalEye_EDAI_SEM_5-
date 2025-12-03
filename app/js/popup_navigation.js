@@ -8,7 +8,8 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log("🔍 Ethical Eye: DOM ready, setting up navigation popup...");
 
     // Get elements
-    const analyzeButton = document.querySelector('.analyze-button');
+    const analyzeButton = document.getElementById('analyze-site-button');
+    const screenshotButton = document.getElementById('capture-screenshot-button');
     const prevButton = document.getElementById('prev-button');
     const nextButton = document.getElementById('next-button');
     const clearButton = document.getElementById('clear-button');
@@ -80,6 +81,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         });
+    }
+
+    if (screenshotButton) {
+        screenshotButton.addEventListener('click', () => captureAndAnalyzeScreenshot(screenshotButton));
     }
 
     // Setup navigation buttons
@@ -249,6 +254,56 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         updateUI();
     }
 });
+
+async function captureAndAnalyzeScreenshot(button) {
+    try {
+        setScreenshotButtonState(button, "Capturing...");
+        const captureResponse = await sendRuntimeMessage({ type: "vision.captureFullPage" });
+        if (!captureResponse?.ok || !captureResponse.dataUrl) {
+            throw new Error(captureResponse?.error || "Failed to capture screenshot");
+        }
+
+        await chrome.storage.local.set({
+            ethicalEyeVisionScreenshot: captureResponse.dataUrl,
+            ethicalEyeVisionScreenshotMeta: {
+                width: captureResponse.width,
+                height: captureResponse.height
+            },
+            ethicalEyeVisionTimestamp: new Date().toISOString()
+        });
+
+        setScreenshotButtonState(button, "Opening results...");
+        chrome.tabs.create({ url: chrome.runtime.getURL('results.html#vision') });
+    } catch (error) {
+        console.error("Vision capture failed:", error);
+        alert(`Screenshot analysis failed: ${error.message || error}`);
+    } finally {
+        setScreenshotButtonState(button, "CAPTURE & ANALYZE SCREENSHOT", false);
+    }
+}
+
+function setScreenshotButtonState(button, label, isBusy = true) {
+    if (!button) return;
+    button.disabled = isBusy;
+    button.textContent = label;
+}
+
+function sendRuntimeMessage(payload) {
+    return new Promise((resolve) => {
+        chrome.runtime.sendMessage(payload, resolve);
+    });
+}
+
+function dataUrlToBlob(dataUrl) {
+    const [header, data] = dataUrl.split(',');
+    const mime = header.match(/:(.*?);/)[1];
+    const binary = atob(data);
+    const array = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) {
+        array[i] = binary.charCodeAt(i);
+    }
+    return new Blob([array], { type: mime });
+}
 
 function updatePatternList() {
     const patternList = document.getElementById('pattern-list');

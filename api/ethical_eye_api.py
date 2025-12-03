@@ -17,6 +17,7 @@ import shap
 from datetime import datetime
 import logging
 import warnings
+from api.vision import VisionAnalyzer
 warnings.filterwarnings('ignore')
 
 # Setup logging
@@ -449,6 +450,14 @@ except Exception as e:
     logger.error(f"Failed to initialize API: {e}")
     api = None
 
+# Initialize vision analyzer (CLIP-based screenshot detection)
+try:
+    vision_analyzer = VisionAnalyzer()
+    logger.info("Vision analyzer ready!")
+except Exception as e:
+    logger.error(f"Failed to initialize vision analyzer: {e}")
+    vision_analyzer = None
+
 @app.route('/', methods=['GET'])
 def health_check():
     """Health check endpoint"""
@@ -495,6 +504,45 @@ def analyze_segments():
     except Exception as e:
         logger.error(f"Error in analyze_segments: {e}")
         return jsonify({'error': str(e)}), 500
+
+
+def _analyze_screenshot_locally(file_storage):
+    stream = file_storage.stream
+    if hasattr(stream, "seek"):
+        try:
+            stream.seek(0)
+        except Exception:
+            pass
+    image_bytes = stream.read()
+    detections, metadata = vision_analyzer.analyze(image_bytes)
+    metadata = metadata or {}
+    metadata["gateway"] = "ethical_eye_api"
+    return {
+        "detections": detections,
+        "metadata": metadata,
+    }
+
+
+@app.route("/vision/analyze", methods=["POST"])
+def analyze_screenshot():
+    if api is None:
+        return jsonify({'error': 'API not initialized'}), 500
+    if vision_analyzer is None:
+        return jsonify({'error': 'Vision analyzer not initialized'}), 500
+
+    if "file" not in request.files:
+        return jsonify({'error': 'No screenshot uploaded'}), 400
+
+    file_storage = request.files["file"]
+    if file_storage.filename == "":
+        return jsonify({'error': 'Empty filename'}), 400
+
+    try:
+        payload = _analyze_screenshot_locally(file_storage)
+        return jsonify(payload)
+    except Exception as exc:
+        logger.error(f"Vision analysis failed: {exc}")
+        return jsonify({'error': str(exc)}), 500
 
 @app.route('/analyze_single', methods=['POST'])
 def analyze_single():

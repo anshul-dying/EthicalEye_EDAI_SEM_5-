@@ -94,10 +94,13 @@ window.scrape = function scrape() {
     }
 
     // Prepare segments for API
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
     const apiSegments = filtered_elements.map((text, index) => {
         const element = mappedElements[index];
         let linkUrl = null;
-        
+
         // Check if element is a link or inside a link
         if (element.tagName === 'A') {
             linkUrl = element.href;
@@ -108,11 +111,21 @@ window.scrape = function scrape() {
             }
         }
 
+        const rect = element.getBoundingClientRect();
+
         return {
             text: text,
             link: linkUrl, // Add link URL
             element_id: `segment_${index}`,
-            position: { x: 0, y: 0 }
+            // Store DOM-space box so we can map to screenshots later
+            position: {
+                x: rect.left,
+                y: rect.top,
+                width: rect.width,
+                height: rect.height,
+                viewportWidth: viewportWidth,
+                viewportHeight: viewportHeight
+            }
         };
     });
 
@@ -157,8 +170,11 @@ window.scrape = function scrape() {
                 data.results.forEach((result, i) => {
                     const originalIndex = start + i;
                     if (originalIndex < mappedElements.length && result.is_dark_pattern) {
+                        const element = mappedElements[originalIndex];
+                        const rect = element.getBoundingClientRect();
+
                         detectedPatterns.push({
-                            element: mappedElements[originalIndex],
+                            element: element,
                             category: result.category,
                             confidence: result.confidence,
                             explanation: result.explanation,
@@ -167,7 +183,15 @@ window.scrape = function scrape() {
                             shap_values: result.shap_values || [],
                             tokens: result.tokens || [],
                             pattern_description: result.pattern_description || '',
-                            timestamp: result.timestamp || new Date().toISOString()
+                            timestamp: result.timestamp || new Date().toISOString(),
+                            box: {
+                                x: rect.left,
+                                y: rect.top,
+                                width: rect.width,
+                                height: rect.height,
+                                viewportWidth: window.innerWidth,
+                                viewportHeight: window.innerHeight
+                            }
                         });
                     }
                 });
@@ -383,7 +407,8 @@ function storeFullPatternsData(patterns) {
             shap_values: p.shap_values || [],
             tokens: p.tokens || [],
             pattern_description: p.pattern_description || '',
-            timestamp: p.timestamp || new Date().toISOString()
+            timestamp: p.timestamp || new Date().toISOString(),
+            box: p.box || null
         })),
         'ethicalEyeResultsTimestamp': new Date().toISOString()
     });

@@ -7,6 +7,10 @@
         "default_icon": "logo_1.png",
         "default_popup": "popup_navigation.html"
     },
+    "background": {
+        "service_worker": "js/background.js",
+        "type": "module"
+    },
     "content_scripts": [
         {
             "matches": [
@@ -26,7 +30,8 @@
         "activeTab",
         "tabs",
         "storage",
-        "scripting"
+        "scripting",
+        "tabCapture"
     ],
     "web_accessible_resources": [
         {

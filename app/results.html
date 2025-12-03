@@ -1,292 +1,337 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ethical Eye - Full Analysis Results</title>
+    <link rel="stylesheet" href="css/insite.css" />
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            padding: 30px;
-        }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        padding: 30px;
+      }
 
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 3px solid #667eea;
-        }
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 3px solid #667eea;
+      }
 
-        .header h1 {
-            color: #333;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
+      .header h1 {
+        color: #333;
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
 
-        .header p {
-            color: #666;
-            font-size: 1.1em;
-        }
+      .header p {
+        color: #666;
+        font-size: 1.1em;
+      }
 
-        .summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
+      .summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
 
-        .summary-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-        }
+      .summary-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+      }
 
-        .summary-card h3 {
-            font-size: 2em;
-            margin-bottom: 5px;
-        }
+      .summary-card h3 {
+        font-size: 2em;
+        margin-bottom: 5px;
+      }
 
-        .summary-card p {
-            font-size: 0.9em;
-            opacity: 0.9;
-        }
+      .summary-card p {
+        font-size: 0.9em;
+        opacity: 0.9;
+      }
 
-        .pattern-card {
-            background: #f8f9fa;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            padding: 25px;
-            margin-bottom: 25px;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
+      .pattern-card {
+        background: #f8f9fa;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 25px;
+        margin-bottom: 25px;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
 
-        .pattern-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
+      .pattern-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
 
-        .pattern-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #ddd;
-        }
+      .pattern-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #ddd;
+      }
 
-        .pattern-category {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #d32f2f;
-        }
+      .pattern-category {
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #d32f2f;
+      }
 
-        .pattern-confidence {
-            background: #4CAF50;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-        }
+      .pattern-confidence {
+        background: #4caf50;
+        color: white;
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-weight: bold;
+      }
 
-        .pattern-text {
-            background: white;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            font-size: 1.1em;
-            line-height: 1.6;
-            border-left: 4px solid #667eea;
-        }
+      .pattern-text {
+        background: white;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+        font-size: 1.1em;
+        line-height: 1.6;
+        border-left: 4px solid #667eea;
+      }
 
-        .pattern-description {
-            color: #666;
-            margin-bottom: 15px;
-            font-style: italic;
-        }
+      .pattern-description {
+        color: #666;
+        margin-bottom: 15px;
+        font-style: italic;
+      }
 
-        .pattern-explanation {
-            background: #e3f2fd;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            border-left: 4px solid #2196f3;
-        }
+      .pattern-explanation {
+        background: #e3f2fd;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+        border-left: 4px solid #2196f3;
+      }
 
-        .shap-section {
-            margin-top: 20px;
-        }
+      .shap-section {
+        margin-top: 20px;
+      }
 
-        .shap-section h3 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 1.2em;
-        }
+      .shap-section h3 {
+        color: #333;
+        margin-bottom: 15px;
+        font-size: 1.2em;
+      }
 
-        .top-words {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
+      .top-words {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
 
-        .word-badge {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+      .word-badge {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+        color: white;
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
 
-        .word-score {
-            background: rgba(255,255,255,0.3);
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.9em;
-        }
+      .word-score {
+        background: rgba(255, 255, 255, 0.3);
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 0.9em;
+      }
 
-        .shap-visualization {
-            background: white;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 15px;
-        }
+      .shap-visualization {
+        background: white;
+        padding: 15px;
+        border-radius: 5px;
+        margin-top: 15px;
+      }
 
-        .token-row {
-            display: flex;
-            align-items: center;
-            margin-bottom: 5px;
-            padding: 5px;
-            border-radius: 3px;
-        }
+      .token-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+        padding: 5px;
+        border-radius: 3px;
+      }
 
-        .token-row:hover {
-            background: #f0f0f0;
-        }
+      .token-row:hover {
+        background: #f0f0f0;
+      }
 
-        .token-text {
-            min-width: 150px;
-            font-weight: 500;
-            color: #333;
-        }
+      .token-text {
+        min-width: 150px;
+        font-weight: 500;
+        color: #333;
+      }
 
-        .shap-bar {
-            flex: 1;
-            height: 25px;
-            background: #e0e0e0;
-            border-radius: 3px;
-            margin: 0 10px;
-            position: relative;
-            overflow: hidden;
-        }
+      .shap-bar {
+        flex: 1;
+        height: 25px;
+        background: #e0e0e0;
+        border-radius: 3px;
+        margin: 0 10px;
+        position: relative;
+        overflow: hidden;
+      }
 
-        .shap-bar-fill {
-            height: 100%;
-            border-radius: 3px;
-            transition: width 0.3s;
-        }
+      .shap-bar-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.3s;
+      }
 
-        .shap-bar-fill.positive {
-            background: linear-gradient(90deg, #4CAF50 0%, #45a049 100%);
-        }
+      .shap-bar-fill.positive {
+        background: linear-gradient(90deg, #4caf50 0%, #45a049 100%);
+      }
 
-        .shap-bar-fill.negative {
-            background: linear-gradient(90deg, #f44336 0%, #d32f2f 100%);
-        }
+      .shap-bar-fill.negative {
+        background: linear-gradient(90deg, #f44336 0%, #d32f2f 100%);
+      }
 
-        .shap-value {
-            min-width: 80px;
-            text-align: right;
-            font-weight: bold;
-            color: #666;
-        }
+      .shap-value {
+        min-width: 80px;
+        text-align: right;
+        font-weight: bold;
+        color: #666;
+      }
 
-        .no-results {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
-        }
+      .no-results {
+        text-align: center;
+        padding: 60px 20px;
+        color: #666;
+      }
 
-        .no-results h2 {
-            font-size: 2em;
-            margin-bottom: 10px;
-        }
+      .no-results h2 {
+        font-size: 2em;
+        margin-bottom: 10px;
+      }
 
-        .timestamp {
-            text-align: center;
-            color: #999;
-            font-size: 0.9em;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #ddd;
-        }
+      .timestamp {
+        text-align: center;
+        color: #999;
+        font-size: 0.9em;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #ddd;
+      }
 
-        .loading {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
-        }
+      .loading {
+        text-align: center;
+        padding: 60px 20px;
+        color: #666;
+      }
 
-        .loading::after {
-            content: '...';
-            animation: dots 1.5s steps(4, end) infinite;
-        }
+      .loading::after {
+        content: "...";
+        animation: dots 1.5s steps(4, end) infinite;
+      }
 
-        @keyframes dots {
-            0%, 20% { content: '.'; }
-            40% { content: '..'; }
-            60%, 100% { content: '...'; }
+      @keyframes dots {
+        0%,
+        20% {
+          content: ".";
         }
+        40% {
+          content: "..";
+        }
+        60%,
+        100% {
+          content: "...";
+        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <div class="header">
-            <h1>🔍 Ethical Eye - Analysis Results</h1>
-            <p>Complete dark pattern detection with SHAP explanations</p>
+      <div class="header">
+        <h1>🔍 Ethical Eye - Analysis Results</h1>
+        <p>Complete dark pattern detection with SHAP explanations</p>
+      </div>
+
+      <div id="loading" class="loading">Loading results</div>
+      <div class="vision-panel">
+        <div class="vision-panel-header">
+          <h2>🖼️ Multimodal Screenshot Analyzer</h2>
+          <p>
+            Upload a screenshot to detect visual dark patterns like disguised
+            ads, high-contrast confirm shaming, and fake buttons.
+          </p>
+        </div>
+        <div class="vision-uploader">
+          <label class="vision-file">
+            <input
+              type="file"
+              id="visionScreenshotInput"
+              accept="image/png,image/jpeg,image/webp"
+            />
+            <span>Select Screenshot</span>
+          </label>
+          <button id="visionAnalyzeBtn" disabled>Analyze Screenshot</button>
+          <span id="visionStatus" class="vision-status info"
+            >No screenshot selected.</span
+          >
+        </div>
+        <div id="visionPreview" class="vision-preview" style="display: none">
+          <div class="vision-preview-stage">
+            <img id="visionPreviewImage" alt="Screenshot preview" />
+            <canvas id="visionOverlayCanvas" class="vision-overlay"></canvas>
+          </div>
+        </div>
+        <div id="visionDetectionList" class="vision-detections">
+          <div class="vision-empty">
+            <p>
+              No visual dark patterns detected yet. Upload a screenshot to get
+              started.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div id="content" style="display: none">
+        <div class="summary" id="summary">
+          <!-- Summary cards will be inserted here -->
         </div>
 
-        <div id="loading" class="loading">Loading results</div>
-        <div id="content" style="display: none;">
-            <div class="summary" id="summary">
-                <!-- Summary cards will be inserted here -->
-            </div>
-
-            <div id="patterns-container">
-                <!-- Pattern cards will be inserted here -->
-            </div>
-
-            <div class="timestamp" id="timestamp"></div>
+        <div id="patterns-container">
+          <!-- Pattern cards will be inserted here -->
         </div>
 
-        <div id="no-results" class="no-results" style="display: none;">
-            <h2>No Results Found</h2>
-            <p>Please run an analysis first from the extension popup.</p>
-        </div>
+        <div class="timestamp" id="timestamp"></div>
+      </div>
+
+      <div id="no-results" class="no-results" style="display: none">
+        <h2>No Results Found</h2>
+        <p>Please run an analysis first from the extension popup.</p>
+      </div>
     </div>
 
     <script src="js/results.js"></script>
-</body>
+  </body>
 </html>
-

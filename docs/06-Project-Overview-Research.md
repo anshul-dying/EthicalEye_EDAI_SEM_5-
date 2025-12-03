@@ -5,9 +5,9 @@
 - **Dark patterns** are deceptive UX design strategies that nudge users toward decisions benefiting platforms at the expense of users (e.g., fake urgency, hidden fees).
 - They are widespread on **e‑commerce** sites and are difficult for non‑experts to recognize in real time.
 - Existing tools either:
-  - focus on static rule‑based detection with limited coverage, or  
+  - focus on static rule‑based detection with limited coverage, or
   - use opaque ML models without **explanations**, which undermines user trust.
-- **Research gap**: There is limited work on **explainable AI (XAI)** tools that both detect dark patterns and help users understand *why* the content is manipulative.
+- **Research gap**: There is limited work on **explainable AI (XAI)** tools that both detect dark patterns and help users understand _why_ the content is manipulative.
 
 **Ethical Eye** addresses this gap with a Chrome extension that performs real‑time dark pattern detection and SHAP‑based explanations directly in the browser.
 
@@ -15,7 +15,7 @@
 
 ### 2. Research Objectives
 
-- **O1 – Detection**: Train a text classification model to identify **8 dark pattern categories** plus a *Not Dark Pattern* class on real e‑commerce content.
+- **O1 – Detection**: Train a text classification model to identify **8 dark pattern categories** plus a _Not Dark Pattern_ class on real e‑commerce content.
 - **O2 – Explanation**: Integrate **SHAP** explanations to highlight influential words and provide human‑readable justifications.
 - **O3 – User Empowerment**: Design a UI that surfaces explanations via **on‑page highlights and tooltips** to improve users’ dark‑pattern literacy.
 - **O4 – Evaluation**: Quantitatively evaluate model performance and qualitatively assess user experience and learning.
@@ -26,45 +26,58 @@
 
 - **Form factor**: Chrome extension (Manifest V3) with a Python/Flask backend.
 - **Core pipeline**:
+
   1. **Content scripts** extract candidate text segments from the active page.
-  2. Segments are sent to a **Flask API** exposing a DistilBERT‑based classifier.
+  2. Segments are sent to a **Flask API** exposing a DistilBERT-based classifier.
   3. The API returns:
      - predicted **category**,
      - **confidence score**, and
-     - **SHAP‑based explanation** (key words + narrative text).
+     - **SHAP-based explanation** (key words + narrative text).
   4. The extension overlays **highlights** on the page and shows explanations in **interactive tooltips** and the **popup**.
 
+- **New multimodal branch**:
+  1. Users upload a screenshot (from the extension or standalone UI) to the **FastAPI CLIP service**.
+  2. A CLIP model + CV heuristics generate bounding boxes and category labels for visual dark patterns.
+  3. OCR text from each region can optionally be re-scored by the DistilBERT classifier to align textual and visual cues.
+  4. Results are routed back through the Flask gateway and rendered as overlays on top of the screenshot.
+
 **Dark pattern classes**:
-1. Urgency  
-2. Scarcity  
-3. Social Proof  
-4. Misdirection  
-5. Forced Action  
-6. Obstruction  
-7. Sneaking  
-8. Hidden Costs  
-9. Not Dark Pattern  
+
+1. Urgency
+2. Scarcity
+3. Social Proof
+4. Misdirection
+5. Forced Action
+6. Obstruction
+7. Sneaking
+8. Hidden Costs
+9. Not Dark Pattern
 
 ---
 
 ### 4. Architecture Summary
 
-- **Presentation layer (Chrome extension)**  
-  - `popup` UI: analyze button, summary of detected patterns, settings.  
-  - Content scripts: `TextSegmenter` for DOM traversal and text extraction; `PatternHighlighter` for visual overlays + tooltips.  
+- **Presentation layer (Chrome extension)**
+
+  - `popup` UI: analyze button, summary of detected patterns, settings.
+  - Content scripts: `TextSegmenter` for DOM traversal and text extraction; `PatternHighlighter` for visual overlays + tooltips.
   - Background service worker: orchestrates analysis requests and maintains extension state.
 
-- **Business logic / ML layer**  
-  - DistilBERT‑based classifier fine‑tuned for 9‑way dark‑pattern classification.  
-  - Confidence scoring and category mapping.  
-  - **SHAP explanation module** to compute token‑level importances and generate textual rationales (key words, confidence factors).
+- **Business logic / ML layer**
 
-- **Data / API layer**  
-  - Flask REST API (`/analyze`, `/analyze_single`, `/patterns`) for batch and single‑segment analysis.  
-  - Model loading and caching from `models/ethical_eye/final_model`.  
+  - DistilBERT-based classifier fine-tuned for 9-way dark-pattern classification.
+  - CLIP-based visual analyzer with OCR + CV heuristics for screenshot uploads.
+  - Confidence scoring and category mapping.
+  - **SHAP explanation module** to compute token-level importances and generate textual rationales (key words, confidence factors).
+
+- **Data / API layer**
+  - Flask REST API (`/analyze`, `/analyze_single`, `/patterns`, `/vision/analyze`) for batch, single-segment, and screenshot analysis, embedding the CLIP/OCR pipeline by default.
+  - Optional FastAPI microservice (`api/vision_service.py`) remains available for deployments that prefer a standalone vision worker.
+  - Model loading and caching from `models/ethical_eye/final_model`.
   - Optional schema for **user study data** (sessions, detections, responses) for research logging.
 
 Quality attributes:
+
 - Response time target \< 2s per page, accuracy target \> 80%, no persistent storage of user content, least‑privilege permissions.
 
 ---
@@ -87,14 +100,15 @@ Quality attributes:
 - **Base model**: `distilbert-base-uncased` with a task‑specific classification head.
 - **Output**: 9 logits (one per class) → softmax → predicted category + confidence.
 - **Training setup**:
-  - Optimizer: AdamW with weight decay.  
-  - Standard transformer fine‑tuning hyperparameters (batch size, learning rate scheduling, dropout).  
-  - Early stopping / best‑model selection by **validation F1**.  
+
+  - Optimizer: AdamW with weight decay.
+  - Standard transformer fine‑tuning hyperparameters (batch size, learning rate scheduling, dropout).
+  - Early stopping / best‑model selection by **validation F1**.
   - Implementation via Hugging Face `Trainer` for reproducible training and metric logging.
 
 - **Metrics**:
-  - Overall accuracy, precision, recall, F1.  
-  - Per‑class precision/recall/F1 and confusion matrix to understand failure modes.  
+  - Overall accuracy, precision, recall, F1.
+  - Per‑class precision/recall/F1 and confusion matrix to understand failure modes.
   - Additional plots: ROC, precision‑recall curves, per‑class F1, and SHAP summaries for the paper.
 
 ---
@@ -103,26 +117,26 @@ Quality attributes:
 
 - **SHAP explainer** built on top of the fine‑tuned DistilBERT model.
 - For each input segment:
-  - compute token‑level SHAP values,  
-  - extract **top‑K influential words** (highest absolute SHAP values),  
+  - compute token‑level SHAP values,
+  - extract **top‑K influential words** (highest absolute SHAP values),
   - generate a short **natural language explanation**, e.g.,  
-    “Key indicators: *hurry*, *limited time*, *only X left*.”
+    “Key indicators: _hurry_, _limited time_, _only X left_.”
 - The explanation object returned by the API includes:
-  - `top_words` (token, importance),  
-  - narrative explanation text,  
+  - `top_words` (token, importance),
+  - narrative explanation text,
   - additional confidence/uncertainty factors.
 - On the frontend, the highlighter:
-  - uses SHAP information to **color‑code** segments,  
-  - surfaces explanations through **tooltips** and the popup,  
+  - uses SHAP information to **color‑code** segments,
+  - surfaces explanations through **tooltips** and the popup,
   - aims to make the link between text and model decision transparent.
 
 ---
 
 ### 8. Chrome Extension UX and Interaction
 
-- User installs Ethical Eye and enables it in Chrome.  
+- User installs Ethical Eye and enables it in Chrome.
 - When visiting an e‑commerce page, they can:
-  - click “Analyze Site” in the popup, or  
+  - click “Analyze Site” in the popup, or
   - rely on automatic analysis (depending on configuration).
 - The extension:
   1. parses the DOM and extracts meaningful text blocks (product descriptions, banners, dialogs, etc.);
@@ -130,8 +144,8 @@ Quality attributes:
   3. visually **highlights** segments flagged as dark patterns above a confidence threshold (e.g., 0.7);
   4. shows **pattern category, confidence, and SHAP explanation** on hover.
 - The popup summarizes:
-  - total number of detected patterns,  
-  - breakdown by category,  
+  - total number of detected patterns,
+  - breakdown by category,
   - quick educational descriptions for each pattern type.
 
 This UX supports both **just‑in‑time warnings** and **longer‑term learning** about dark patterns.
@@ -142,24 +156,27 @@ This UX supports both **just‑in‑time warnings** and **longer‑term learning
 
 Two main evaluation checkpoints are available:
 
-- **Earlier DistilBERT experiment** (unbalanced / earlier pipeline)  
-  - Overall accuracy ≈ **88.1%**  
-  - Overall F1 ≈ **0.88**  
+- **Earlier DistilBERT experiment** (unbalanced / earlier pipeline)
+
+  - Overall accuracy ≈ **88.1%**
+  - Overall F1 ≈ **0.88**
   - Per‑class F1 ranged from ~0.76 (Urgency) to 1.00 (Forced Action).
 
-- **Improved simple model / balanced setting** (`simple_improved_results.json`)  
-  - Overall accuracy ≈ **97.6%**  
-  - Overall F1 ≈ **0.98**  
+- **Improved simple model / balanced setting** (`simple_improved_results.json`)
+  - Overall accuracy ≈ **97.6%**
+  - Overall F1 ≈ **0.98**
   - Most classes achieve F1 ≈ 0.90–1.00, with very few confusions between categories.
 
 The model consistently meets and exceeds the original targets:
-- **Target**: accuracy \> 80%, F1 \> 0.72 overall.  
+
+- **Target**: accuracy \> 80%, F1 \> 0.72 overall.
 - **Achieved**: accuracy up to ~97.6%, strong per‑class F1, and clean confusion matrices.
 
 These results are visualized through:
-- confusion matrices,  
-- per‑class F1 plots,  
-- ROC and precision‑recall curves,  
+
+- confusion matrices,
+- per‑class F1 plots,
+- ROC and precision‑recall curves,
 - SHAP importance and summary plots (used directly as paper figures).
 
 ---
@@ -168,21 +185,22 @@ These results are visualized through:
 
 - **Participants**: 5–10 users with varied technical and UX backgrounds.
 - **Procedure**:
-  - pre‑study questionnaire on dark‑pattern awareness,  
-  - task‑based browsing of instrumented e‑commerce pages while using Ethical Eye,  
-  - **think‑aloud** protocol to capture real‑time reactions,  
+  - pre‑study questionnaire on dark‑pattern awareness,
+  - task‑based browsing of instrumented e‑commerce pages while using Ethical Eye,
+  - **think‑aloud** protocol to capture real‑time reactions,
   - post‑study questionnaire on:
-    - perceived usefulness of explanations,  
-    - trust in the system,  
+    - perceived usefulness of explanations,
+    - trust in the system,
     - self‑reported learning and confidence in detecting dark patterns.
 - **Data collected** (optional, via the user‑study schema):
-  - pattern detections (type, confidence, helpfulness of explanation),  
-  - user responses and ratings (e.g., 1–5 Likert scales),  
+  - pattern detections (type, confidence, helpfulness of explanation),
+  - user responses and ratings (e.g., 1–5 Likert scales),
   - qualitative interview transcripts for thematic analysis.
 
 Planned analysis:
-- descriptive statistics and visualizations (satisfaction, learning effectiveness),  
-- thematic coding of open‑ended responses (e.g., how explanations changed decisions),  
+
+- descriptive statistics and visualizations (satisfaction, learning effectiveness),
+- thematic coding of open‑ended responses (e.g., how explanations changed decisions),
 - triangulation with quantitative results to support the research claims.
 
 ---
@@ -190,16 +208,16 @@ Planned analysis:
 ### 11. Security, Privacy, and Ethical Considerations
 
 - **Privacy by design**:
-  - No persistent storage of raw user browsing content by default.  
-  - Processing either happens locally or via a controlled API with no user identifiers.  
+  - No persistent storage of raw user browsing content by default.
+  - Processing either happens locally or via a controlled API with no user identifiers.
   - No integration with third‑party tracking services.
 - **Security**:
-  - strict input validation and output encoding on the API side,  
-  - minimal Chrome permissions (`activeTab`, `scripting`, etc.),  
+  - strict input validation and output encoding on the API side,
+  - minimal Chrome permissions (`activeTab`, `scripting`, etc.),
   - defensive error handling and logging (avoiding sensitive data in logs).
 - **Ethical aspects**:
-  - clear communication that predictions are **assistive**, not authoritative;  
-  - emphasis on **user education and agency**, not automated blocking of content;  
+  - clear communication that predictions are **assistive**, not authoritative;
+  - emphasis on **user education and agency**, not automated blocking of content;
   - alignment with digital‑rights and AI‑ethics principles (transparency, user control).
 
 ---
@@ -207,32 +225,45 @@ Planned analysis:
 ### 12. Contributions and Novelty
 
 - **Technical**:
-  - A full pipeline for **dark‑pattern text classification** with high accuracy.  
-  - Integration of **SHAP explanations** into a browser extension UX for real‑time, on‑page explanations.  
+
+  - A full pipeline for **dark‑pattern text classification** with high accuracy.
+  - Integration of **SHAP explanations** into a browser extension UX for real‑time, on‑page explanations.
+  - A new multimodal CLIP+OCR microservice that highlights dark patterns directly on screenshots.
   - Reusable training scripts, SHAP tooling, and research plotting code.
 
 - **Research**:
-  - Empirical evidence that transformer‑based models can robustly detect multiple dark‑pattern categories in the wild.  
-  - A concrete design pattern for embedding XAI into consumer‑facing tools.  
+
+  - Empirical evidence that transformer‑based models can robustly detect multiple dark‑pattern categories in the wild.
+  - A concrete design pattern for embedding XAI into consumer‑facing tools.
   - A dataset and evaluation protocol that can be reused or extended in future work.
 
 - **Societal**:
-  - Practical tool to support **digital literacy** and **user empowerment** on e‑commerce sites.  
+  - Practical tool to support **digital literacy** and **user empowerment** on e‑commerce sites.
   - Potential foundation for regulatory or compliance tools that audit interfaces for manipulative patterns.
 
 ---
 
+### 14. Multimodal Screenshot Analysis (New)
+
+- **Motivation**: The original text-only pipeline misses purely visual dark patterns (e.g., fake buttons, color manipulation, deceptive layout).
+- **Implementation**:
+  - `api/vision_service.py` exposes a FastAPI endpoint backed by Hugging Face CLIP (`openai/clip-vit-base-patch32`).
+  - `api/vision/detector.py` proposes candidate regions using contour analysis, button heuristics, and color statistics.
+  - `api/vision/ocr.py` extracts text per region so the DistilBERT classifier can still provide textual cues when available.
+  - `api/vision/clip_scorer.py` fuses CLIP similarities with heuristics (color contrast, button-likeness, area) to produce labels such as _Disguised Ad_, _Fake Scarcity_, _Color Manipulation_, etc.
+- **User Experience**: `app/results.html` now contains an upload widget that draws bounding boxes and renders detection cards using the new API.
+- **Validation**: `vision_smoke_test.py` runs sample screenshots from `test/images` through the pipeline and reports latency plus detected categories, enabling quick regression checks whenever the multimodal stack changes.
+
 ### 13. Suggested Paper Structure (How to Use This Overview)
 
 You can map this document directly into a research paper:
+
 - **Introduction / Background**: Sections 1–2 (problem, objectives, dark‑pattern context).  
--, **Related Work**: Compare to prior dark‑pattern detection and XAI tools (to be written using literature).  
-- **System Design / Methodology**: Sections 3–8 (architecture, dataset, model, SHAP, UX).  
-- **Experiments and Results**: Section 9 (+ figures from `plots/research/`).  
-- **User Study**: Section 10 (design + qualitative findings once study is complete).  
-- **Discussion & Ethics**: Section 11 (limitations, risks, ethical implications).  
+  -, **Related Work**: Compare to prior dark‑pattern detection and XAI tools (to be written using literature).
+- **System Design / Methodology**: Sections 3–8 (architecture, dataset, model, SHAP, UX).
+- **Experiments and Results**: Section 9 (+ figures from `plots/research/`).
+- **User Study**: Section 10 (design + qualitative findings once study is complete).
+- **Discussion & Ethics**: Section 11 (limitations, risks, ethical implications).
 - **Conclusion & Future Work**: Section 12 (contributions, extensions such as more pattern types, multi‑language support, deployment at scale).
 
 This file is intended as a **bridge between the implementation and your research paper** so you can quickly copy, adapt, and expand each subsection for your thesis or conference submission.
-
-

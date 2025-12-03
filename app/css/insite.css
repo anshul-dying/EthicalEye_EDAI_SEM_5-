@@ -81,3 +81,176 @@
     font-size: 14px !important;
     width: auto !important;
 }
+
+/* Multimodal vision panel styles */
+.vision-panel {
+    background: #fdfdfd;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 24px;
+    margin: 30px 0;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.vision-panel-header h2 {
+    margin-bottom: 8px;
+}
+
+.vision-panel-header p {
+    color: #555;
+    font-size: 0.95em;
+}
+
+.vision-uploader {
+    margin-top: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+.vision-file {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+    border: 1px dashed #6c5ce7;
+    padding: 10px 18px;
+    border-radius: 8px;
+    color: #6c5ce7;
+    cursor: pointer;
+}
+
+.vision-file input[type="file"] {
+    opacity: 0;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+#visionAnalyzeBtn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: opacity 0.2s ease;
+}
+
+#visionAnalyzeBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.vision-status {
+    font-size: 0.9em;
+}
+
+.vision-status.info {
+    color: #555;
+}
+
+.vision-status.success {
+    color: #2e7d32;
+}
+
+.vision-status.error {
+    color: #c62828;
+}
+
+.vision-status.working {
+    color: #ef6c00;
+}
+
+.vision-preview {
+    margin-top: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.vision-preview-stage {
+    position: relative;
+}
+
+.vision-preview-stage img {
+    width: 100%;
+    display: block;
+}
+
+.vision-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+.vision-detections {
+    margin-top: 20px;
+}
+
+.vision-detection-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 12px;
+    background: white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+.vision-detection-header {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.vision-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #ff6b6b;
+    color: white;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+}
+
+.vision-score {
+    color: #555;
+    font-size: 0.9em;
+}
+
+.vision-reason {
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.vision-detection-text {
+    background: #f8f9ff;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+}
+
+.vision-text-classifier {
+    font-size: 0.85em;
+    color: #555;
+}
+
+.vision-metadata {
+    font-size: 0.85em;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.vision-empty {
+    text-align: center;
+    color: #777;
+    padding: 20px 10px;
+}

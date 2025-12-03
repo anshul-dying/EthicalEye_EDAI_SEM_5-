@@ -175,6 +175,13 @@ Ethical Eye uses a lightweight client-server design (Fig. \ref{fig:architecture}
 \label{fig:architecture}
 \end{figure}
 
+\subsection{Multimodal Screenshot Analysis}
+While Ethical Eye is primarily text-centric, many deceptive patterns are implemented through \emph{visual} design choices (e.g., bright ``Accept All'' buttons, low-contrast ``Reject'' links, or banner-like disguised ads). To bridge this gap, we add a multimodal screenshot-analysis feature that complements the DOM-based pipeline rather than replacing it.
+
+When a user clicks ``Capture \& Analyze Screenshot'' in the extension popup, the background service worker captures a high-resolution screenshot of the current viewport. At the same time, the content script records the exact on-page coordinates of elements already classified as deceptive patterns by DistilBERT (via \texttt{getBoundingClientRect}) and stores these bounding boxes in Chrome storage. The full-page results view then renders the screenshot and overlays translucent bounding boxes at the corresponding pixel locations, reusing the same category labels, confidence scores, and SHAP explanations as the text-only pipeline.
+
+This design has two advantages: (1) it avoids training a separate, fully supervised vision model—reducing engineering overhead and data requirements—while still giving users a \emph{visual} understanding of where the dark patterns occur; and (2) it keeps the visual feedback strictly aligned with the explanations of the underlying text classifier, preserving interpretability. In parallel, we experimented with a CLIP-based prototype that scores candidate UI regions using image--text similarity and simple computer-vision heuristics (e.g., color contrast, button-like shapes), but in the current system this branch is used only as an auxiliary signal and not as the primary detector. As a result, screenshot overlays remain faithful to the text model while opening a path toward richer multimodal analysis in future work.
+
 \section{Methodology}
 
 \subsection{Dataset Construction}
